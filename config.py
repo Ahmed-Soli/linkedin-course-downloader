@@ -6,7 +6,8 @@ import os
 USERNAME = ''
 PASSWORD = ''
 COURSES = [
-'couse-slug-here'
+'course-slug-here',
+'course-slug-here'
 ]
 
 # EDIT IF YOU NEED TO
