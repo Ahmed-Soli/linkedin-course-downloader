@@ -17,7 +17,8 @@ This script was written for educational usage and personal use only.
 Make sure your LinkedIn account is NOT protected with 2FA
 
 # Installing dependencies:
-pip install -r requirements.txt
+
+`pip install -r requirements.txt`
 
 # Open config.py put your  (linkedin email, password, and courses slugs)
 
@@ -26,7 +27,10 @@ COURSE URL: https://www.linkedin.com/learning/python-advanced-design-pattern
 ->
 SLUG: python-advanced-design-pattern
 # Usage
-python downloader.py
+
+`python downloader.py`
 
 Re-structued by Ahmed Soliman
+![Test Image 1](proof1.PNG)
 
+![Test Image 1](proof2.PNG)
