@@ -50,6 +50,17 @@ def build_course(course_element: dict):
                 ],index=idx)
         for idx, course in enumerate(course_element['chapters'], start=1)
     ]
+    logging.info(f'[*] Fetching course {course_element["title"]} Exercise Files')    
+    if course_element.get('exerciseFiles',''):
+        chapter_path = os.path.join(BASE_DOWNLOAD_PATH, clean_dir_name(course_element['title']), 'Exercise Files')
+
+        if not os.path.exists(chapter_path) : os.makedirs(chapter_path)
+        for exercise in course_element['exerciseFiles']:
+            file_name = exercise['name']
+            file_link = exercise['url']
+            logging.info(f'[~] writing course {course_element["title"]} Exercise Files')
+            download_file(file_link, os.path.join(chapter_path,file_name))
+            logging.info(f'[*] Finished writing course {course_element["title"]} Exercise Files')
     course = Course(name=course_element['title'],
                     slug=course_element['slug'],
                     description=course_element['description'],
@@ -67,10 +78,16 @@ def fetch_course(course_slug):
     url = f"https://www.linkedin.com/learning-api/detailedCourses??fields=fullCourseUnlocked,releasedOn,exerciseFileUrls,exerciseFiles&" \
           f"addParagraphsToTranscript=true&courseSlug={course_slug}&q=slugs"
     HEADERS['Csrf-Token'] = session.cookies._cookies['.www.linkedin.com']['/']['JSESSIONID'].value.replace('"','')
-
-    resp = session.get(url, headers=HEADERS)
     
+    resp = session.get(url, headers=HEADERS)
+    if resp.status_code == 429 :
+        logging.info(f'[!] Faild due to: {resp.reason}')
+        return
     data = resp.json()
+    
+
+    # data['elements'][0]['exerciseFiles']
+
     course = build_course(data['elements'][0])
 
     logging.info(f'[*] Fetching course {course.name}')
@@ -158,20 +175,7 @@ def download_file(url, output):
     with session.get(url, headers=HEADERS, allow_redirects=True) as r:
         try:
             open(output, 'wb').write(r.content)
-            # with open(output, 'wb') as f:
-            #     while True:
-            #         chunk = r.content.read(1024)
-            #         if not chunk:
-            #             break
-            #         f.write(chunk)
         except Exception as e:
             logging.exception(f"[!] Error while downloading: '{e}'")
             if os.path.exists(output):
                 os.remove(output)
-
-
-
-
-
-
-
