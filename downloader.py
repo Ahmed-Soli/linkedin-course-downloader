@@ -6,10 +6,6 @@ import logging
 from config import USERNAME, PASSWORD
 from fetch_info import fetch_courses
 
-
-
-
-
 def process():
     try:
         logging.info("[*] -------------Login-------------")
