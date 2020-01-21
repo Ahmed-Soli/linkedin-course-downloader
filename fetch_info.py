@@ -1,9 +1,10 @@
 
-import logging , re, os
+import logging , re, os 
 from itertools import chain, filterfalse, starmap
 from collections import namedtuple
-from config import COURSES, BASE_DOWNLOAD_PATH
+from clint.textui import progress
 
+BASE_DOWNLOAD_PATH = os.path.join(os.path.dirname(__file__), "downloads")
 
 HEADERS = {
 'Content-Type': 'application/json',
@@ -68,10 +69,14 @@ def build_course(course_element: dict):
                     chapters=chapters)
     return course
 
-def fetch_courses(sess):
+def fetch_courses(sess,COURSES):
     global session
     session = sess
     for course in COURSES:
+        if not course:continue
+        if 'learning/' in course :
+            splitted = course.split('learning/')[1]
+            course = splitted.split('/')[0] if '/' in splitted else splitted        
         fetch_course(course)
 
 def fetch_course(course_slug):
@@ -135,13 +140,16 @@ def fetch_video(course: Course, chapter: Chapter, video: Video):
             break
         except :
             pass
-
-    video_url = data['elements'][0]['selectedVideo']['url']['progressiveUrl']
+    try:
+        video_url = data['elements'][0]['selectedVideo']['url']['progressiveUrl']
+    except :
+        logging.error("Extracting Video URL Error , make sure you have access to linkedin learning via premium account")
+        return 
     
     try:
         subtitles = data['elements'][0]['selectedVideo']['transcript']
-    except Exception as e:
-        print(e)
+    except :
+        logging.error("Extracting Video subtitles Error")
         subtitles = None
     duration_in_ms = int(data['elements'][0]['selectedVideo']['durationInSeconds']) * 1000
 
@@ -172,10 +180,19 @@ def write_subtitles(subs, output_path, video_duration):
 
 
 def download_file(url, output):
-    with session.get(url, headers=HEADERS, allow_redirects=True) as r:
-        try:
-            open(output, 'wb').write(r.content)
-        except Exception as e:
-            logging.exception(f"[!] Error while downloading: '{e}'")
-            if os.path.exists(output):
-                os.remove(output)
+    if url:
+        with session.get(url, headers=HEADERS, stream=True) as r:
+            try:
+                if not r.headers.get('content-length','') : return
+                with open(output, 'wb') as f:
+                    total_length = int(r.headers.get('content-length',0))
+                    for chunk in progress.bar(r.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1): 
+                        if chunk:
+                            f.write(chunk)
+                            f.flush()
+            except Exception as e:
+                logging.error(f"[!] Error while downloading: '{e}'")
+                if os.path.exists(output):
+                    os.remove(output)
+    else:
+        logging.info(f'[!!] Error while Downloaind ==> Not a valid URL')

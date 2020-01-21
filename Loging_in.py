@@ -2,7 +2,6 @@ import logging
 import requests
 import lxml.html
 from urllib.parse import urljoin
-from config import USERNAME, PASSWORD, COURSES, PROXY, BASE_DOWNLOAD_PATH
 
 def login(username, password,req_session=requests.Session(),URL='https://www.linkedin.com/login/'):
     with req_session as session:
@@ -20,7 +19,7 @@ def login(username, password,req_session=requests.Session(),URL='https://www.lin
         fp_data         = html.xpath("//input[@name='fp_data']/@value").pop()
         d               = html.xpath("//input[@name='_d']/@value").pop()
         controlId       = html.xpath("//input[@name='controlId']/@value").pop()
-        logging.debug(f"[*] CSRF: {csrf}")
+        # logging.debug(f"[*] CSRF: {csrf}")
         data = {
             "session_key": username,
             "session_password": password,
