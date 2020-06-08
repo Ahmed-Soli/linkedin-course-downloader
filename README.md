@@ -42,6 +42,8 @@ SLUG: python-advanced-design-pattern
 
 # Re-structued by Ahmed Soliman
 
-![Test Image 1](proof1.PNG)
+![Test Image 1](linkedin_downloader.gif)
 
-![Test Image 1](proof2.PNG)
+![Test Image 2](proof1.PNG)
+
+![Test Image 3](proof2.PNG)
