@@ -1,5 +1,5 @@
 from Loging_in import login
-import logging , os , json
+import logging , os , json , requests
 from fetch_info import fetch_courses
 
 def check_required_info():
@@ -21,16 +21,20 @@ def process():
             logging.info("[*] -------------Login-------------")
             USERNAME , PASSWORD = caching['linkedin_email'], caching['linkedin_password']
             if not USERNAME or not PASSWORD :
-                logging.error("please open the required_info.josn and fill in your info ")
+                logging.error("[!] please open the required_info.josn and fill in your info ")
             else:
-                session               =  login(USERNAME , PASSWORD)                
-                logging.info("[*] -------------Done-------------")
-                logging.info("[*] -------------Fetching Course-------------")
-                fetch_courses(session,caching['courses_links'])
-                logging.info("[*] -------------Done-------------")
+                with requests.Session() as session:
+                    logged_in     =  login(USERNAME , PASSWORD,session)
+                    if logged_in:
+                        logging.info("[*] -------------Done-------------")
+                        logging.info("[*] -------------Fetching Course-------------")
+                        fetch_courses(session,caching['courses_links'])
+                        logging.info("[*] -------------Done-------------")
+                    else:
+                        logging.error("[!] Faild to login ..")
 
     except Exception as e:
-        logging.error(f"Connection Error: {e}")
+        logging.error(f"[!] Connection Error: {e}")
 
 
 if __name__ == "__main__":

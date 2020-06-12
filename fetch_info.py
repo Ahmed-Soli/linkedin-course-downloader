@@ -139,17 +139,17 @@ def fetch_video(course: Course, chapter: Chapter, video: Video):
             resp.raise_for_status()
             break
         except :
-            pass
+            logging.error("[!] This Video is Locked, make sure you have access to linkedin learning via premium account")
     try:
         video_url = data['elements'][0]['selectedVideo']['url']['progressiveUrl']
     except :
-        logging.error("Extracting Video URL Error , make sure you have access to linkedin learning via premium account")
+        logging.error("[!] This Video is Locked, make sure you have access to linkedin learning via premium account")
         return 
     
     try:
         subtitles = data['elements'][0]['selectedVideo']['transcript']
     except :
-        logging.error("Extracting Video subtitles Error")
+        logging.error("[!] Extracting Video subtitles Error")
         subtitles = None
     duration_in_ms = int(data['elements'][0]['selectedVideo']['durationInSeconds']) * 1000
 
@@ -181,18 +181,21 @@ def write_subtitles(subs, output_path, video_duration):
 
 def download_file(url, output):
     if url:
-        with session.get(url, headers=HEADERS, stream=True) as r:
-            try:
-                if not r.headers.get('content-length','') : return
-                with open(output, 'wb') as f:
-                    total_length = int(r.headers.get('content-length',0))
-                    for chunk in progress.bar(r.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1): 
-                        if chunk:
-                            f.write(chunk)
-                            f.flush()
-            except Exception as e:
-                logging.error(f"[!] Error while downloading: '{e}'")
-                if os.path.exists(output):
-                    os.remove(output)
+        try:
+            r =  session.get(url, stream=True)
+                # if not r.headers.get('content-length','') : return
+            r.raise_for_status()
+            with open(output, 'wb') as f:
+                total_length = int(r.headers.get('content-length',0))
+                for chunk in progress.bar(r.iter_content(chunk_size=8192), expected_size=(total_length/1024) + 1): 
+                    if chunk:
+                        f.write(chunk)
+                        f.flush()
+        except Exception as e:
+            logging.info(url)
+            logging.error(f"[!] Error while downloading: '{e}'")
+            if os.path.exists(output):
+                os.remove(output)
+                
     else:
         logging.info(f'[!!] Error while Downloaind ==> Not a valid URL')
