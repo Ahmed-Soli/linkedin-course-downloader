@@ -1,4 +1,3 @@
 requests
 lxml
 clint
-pickle
